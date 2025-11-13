@@ -42,11 +42,26 @@ function NoBusyWait() {
           if (runningProc.progress >= 100) {
             runningProc.progress = 100
             runningProc.state = 'completed'
-            // Semaphore returns to 1 when process finishes
+            // Signal: Semaphore returns to 1 when process completes
             newSemaphore.value = 1
+            
+            // Check if there's a next waiting process and wake it immediately
+            let wakeId = newSemaphore.queue.length > 0 ? newSemaphore.queue.shift() : undefined
+            if (wakeId === undefined) {
+              const nextSleep = newProcesses.find(p => p.state === 'sleeping')
+              wakeId = nextSleep?.id
+            }
+            if (wakeId !== undefined) {
+              const wakeProc = newProcesses.find(p => p.id === wakeId)
+              if (wakeProc && wakeProc.state === 'sleeping') {
+                wakeProc.state = 'running'
+                // Wait: Semaphore becomes 0 as new process starts running
+                newSemaphore.value = 0
+              }
+            }
           }
         } else if (newSemaphore.value === 1) {
-          // No process running and semaphore is 1, wake the next process
+          // No process running and semaphore is available, wake the next process
           let wakeId = newSemaphore.queue.length > 0 ? newSemaphore.queue.shift() : undefined
           if (wakeId === undefined) {
             const nextSleep = newProcesses.find(p => p.state === 'sleeping')
@@ -56,7 +71,7 @@ function NoBusyWait() {
             const wakeProc = newProcesses.find(p => p.id === wakeId)
             if (wakeProc && wakeProc.state === 'sleeping') {
               wakeProc.state = 'running'
-              // Semaphore becomes 0 as process starts running
+              // Wait: Semaphore becomes 0 as process starts running
               newSemaphore.value = 0
             }
           }
