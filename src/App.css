@@ -776,6 +776,7 @@ footer {
   background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
 }
 
+@media (max-width: 480px) {
   .scheduling-tabs {
     flex-direction: column;
   }
