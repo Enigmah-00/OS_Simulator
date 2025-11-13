@@ -452,7 +452,7 @@ function DiningPhilosopher() {
           </button>
         </div>
         <div className="visualization">
-          <canvas ref={canvasRef} width={800} height={500}></canvas>
+          <canvas ref={canvasRef} width={800} height={600}></canvas>
         </div>
         <div className="info-panel">
           <h3>Problem Description:</h3>

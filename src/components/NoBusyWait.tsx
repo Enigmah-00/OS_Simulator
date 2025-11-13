@@ -181,7 +181,7 @@ function NoBusyWait() {
           </button>
         </div>
         <div className="visualization">
-          <canvas ref={canvasRef} width={800} height={400}></canvas>
+          <canvas ref={canvasRef} width={800} height={600}></canvas>
         </div>
         <div className="info-panel">
           <h3>Algorithm:</h3>

@@ -457,7 +457,7 @@ function SocketProgramming() {
           </button>
         </div>
         <div className="visualization">
-          <canvas ref={canvasRef} width={800} height={400}></canvas>
+          <canvas ref={canvasRef} width={800} height={600}></canvas>
         </div>
 
         {/* Messaging section */}

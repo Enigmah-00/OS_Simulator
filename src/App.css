@@ -275,7 +275,7 @@ header h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 400px;
+  min-height: 600px;
   border: 2px solid var(--border-color);
 }
 
@@ -375,7 +375,10 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 400px;
+  padding: 14px;
+  /* ensure a stable bar height for each process */
+  min-height: 48px;
+  max-height: 680px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 8px;
