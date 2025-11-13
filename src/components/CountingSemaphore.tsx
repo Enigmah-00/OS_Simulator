@@ -10,7 +10,7 @@ function CountingSemaphore() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [resources, setResources] = useState(3)
   const [processCount, setProcessCount] = useState(5)
-  const [processes, setProcesses] = useState<Process[]>([])
+  const [_processes, setProcesses] = useState<Process[]>([])
   const [semaphore, setSemaphore] = useState(3)
   const [isRunning, setIsRunning] = useState(false)
 
