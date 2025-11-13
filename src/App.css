@@ -546,6 +546,28 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+
+.process-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.process-list::-webkit-scrollbar-track {
+  background: rgba(15, 76, 117, 0.1);
+  border-radius: 10px;
+}
+
+.process-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+  border-radius: 10px;
+}
+
+.process-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
 }
 
 .process-item {
@@ -701,6 +723,58 @@ footer {
   .controls select {
     width: 100%;
   }
+}
+
+/* Scrollable container styles for process/philosopher lists */
+.scrollable-container {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+
+.scrollable-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scrollable-container::-webkit-scrollbar-track {
+  background: rgba(15, 76, 117, 0.1);
+  border-radius: 10px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+  border-radius: 10px;
+}
+
+.scrollable-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+}
+
+/* Stats area scrollable for many processes */
+.stats-area {
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.stats-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.stats-area::-webkit-scrollbar-track {
+  background: rgba(15, 76, 117, 0.05);
+  border-radius: 10px;
+}
+
+.stats-area::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+  border-radius: 10px;
+}
+
+.stats-area::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+}
 
   .scheduling-tabs {
     flex-direction: column;
