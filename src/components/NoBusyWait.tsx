@@ -28,13 +28,25 @@ function NoBusyWait() {
     const interval = setInterval(() => {
       setProcesses((prevProcesses) => {
         const newProcesses = [...prevProcesses]
-        // Semaphore acts as a wake trigger: 1 means someone can wake, stays 1 throughout
-        let newSemaphore: Semaphore = { value: 1, queue: [...semaphore.queue] }
+        let newSemaphore: Semaphore = { ...semaphore }
 
-        // If nothing is running and there's a token (value === 1), wake the next sleeping process
-        const hasRunning = newProcesses.some(p => p.state === 'running')
-        if (!hasRunning && newSemaphore.value === 1) {
-          // Prefer queue order; fall back to lowest-id sleeping
+        // Check if there's a running process
+        const runningProc = newProcesses.find(p => p.state === 'running')
+        
+        if (runningProc) {
+          // Semaphore is 0 while a process is running
+          newSemaphore.value = 0
+          
+          // Progress the running process
+          runningProc.progress += 2
+          if (runningProc.progress >= 100) {
+            runningProc.progress = 100
+            runningProc.state = 'completed'
+            // Semaphore returns to 1 when process finishes
+            newSemaphore.value = 1
+          }
+        } else if (newSemaphore.value === 1) {
+          // No process running and semaphore is 1, wake the next process
           let wakeId = newSemaphore.queue.length > 0 ? newSemaphore.queue.shift() : undefined
           if (wakeId === undefined) {
             const nextSleep = newProcesses.find(p => p.state === 'sleeping')
@@ -44,18 +56,9 @@ function NoBusyWait() {
             const wakeProc = newProcesses.find(p => p.id === wakeId)
             if (wakeProc && wakeProc.state === 'sleeping') {
               wakeProc.state = 'running'
+              // Semaphore becomes 0 as process starts running
+              newSemaphore.value = 0
             }
-          }
-        }
-
-        // Progress the running process (exactly one)
-        const runningProc = newProcesses.find(p => p.state === 'running')
-        if (runningProc) {
-          runningProc.progress += 2
-          if (runningProc.progress >= 100) {
-            runningProc.progress = 100
-            runningProc.state = 'completed'
-            // Keep semaphore at 1 so next process can wake on the next tick
           }
         }
 
