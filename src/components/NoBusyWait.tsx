@@ -15,8 +15,10 @@ function NoBusyWait() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [processCount, setProcessCount] = useState(4)
   const [processes, setProcesses] = useState<Process[]>([])
-  const [semaphore, setSemaphore] = useState<Semaphore>({ value: 1, queue: [] })
+  const [_semaphore, setSemaphore] = useState<Semaphore>({ value: 1, queue: [] })
   const [isRunning, setIsRunning] = useState(false)
+  // Keep the wake queue in a ref to avoid restarting the interval each tick
+  const queueRef = useRef<number[]>([])
 
   useEffect(() => {
     if (!isRunning || !canvasRef.current) return
@@ -28,41 +30,15 @@ function NoBusyWait() {
     const interval = setInterval(() => {
       setProcesses((prevProcesses) => {
         const newProcesses = [...prevProcesses]
-        let newSemaphore: Semaphore = { ...semaphore }
+        // Semaphore acts as a wake trigger: 1 means someone can wake, stays 1 throughout
+        // Use queueRef to avoid effect dependency churn
+        let newSemaphore: Semaphore = { value: 1, queue: [...queueRef.current] }
 
-        // Check if there's a running process
-        const runningProc = newProcesses.find(p => p.state === 'running')
-        
-        if (runningProc) {
-          // Semaphore is 0 while a process is running
-          newSemaphore.value = 0
-          
-          // Progress the running process
-          runningProc.progress += 2
-          if (runningProc.progress >= 100) {
-            runningProc.progress = 100
-            runningProc.state = 'completed'
-            // Signal: Semaphore returns to 1 when process completes
-            newSemaphore.value = 1
-            
-            // Check if there's a next waiting process and wake it immediately
-            let wakeId = newSemaphore.queue.length > 0 ? newSemaphore.queue.shift() : undefined
-            if (wakeId === undefined) {
-              const nextSleep = newProcesses.find(p => p.state === 'sleeping')
-              wakeId = nextSleep?.id
-            }
-            if (wakeId !== undefined) {
-              const wakeProc = newProcesses.find(p => p.id === wakeId)
-              if (wakeProc && wakeProc.state === 'sleeping') {
-                wakeProc.state = 'running'
-                // Wait: Semaphore becomes 0 as new process starts running
-                newSemaphore.value = 0
-              }
-            }
-          }
-        } else if (newSemaphore.value === 1) {
-          // No process running and semaphore is available, wake the next process
-          let wakeId = newSemaphore.queue.length > 0 ? newSemaphore.queue.shift() : undefined
+        // If nothing is running and there's a token (value === 1), wake the next sleeping process
+        const hasRunning = newProcesses.some(p => p.state === 'running')
+        if (!hasRunning && newSemaphore.value === 1) {
+          // Prefer queue order; fall back to lowest-id sleeping
+          let wakeId = queueRef.current.length > 0 ? queueRef.current.shift() : undefined
           if (wakeId === undefined) {
             const nextSleep = newProcesses.find(p => p.state === 'sleeping')
             wakeId = nextSleep?.id
@@ -71,12 +47,23 @@ function NoBusyWait() {
             const wakeProc = newProcesses.find(p => p.id === wakeId)
             if (wakeProc && wakeProc.state === 'sleeping') {
               wakeProc.state = 'running'
-              // Wait: Semaphore becomes 0 as process starts running
-              newSemaphore.value = 0
             }
           }
         }
 
+        // Progress the running process (exactly one)
+        const runningProc = newProcesses.find(p => p.state === 'running')
+        if (runningProc) {
+          runningProc.progress += 2
+          if (runningProc.progress >= 100) {
+            runningProc.progress = 100
+            runningProc.state = 'completed'
+            // Keep semaphore at 1 so next process can wake on the next tick
+          }
+        }
+
+        // Reflect current queue state for rendering only
+        newSemaphore.queue = [...queueRef.current]
         setSemaphore(newSemaphore)
         draw(ctx, canvas.width, canvas.height, newProcesses, newSemaphore)
 
@@ -89,7 +76,7 @@ function NoBusyWait() {
     }, 100)
 
     return () => clearInterval(interval)
-  }, [isRunning, semaphore])
+  }, [isRunning])
 
   const draw = (
     ctx: CanvasRenderingContext2D,
@@ -153,13 +140,15 @@ function NoBusyWait() {
       q.push(id)
     }
     setProcesses(newProcesses)
-    setSemaphore({ value: 1, queue: q })
+    queueRef.current = q
+    setSemaphore({ value: 1, queue: [...queueRef.current] })
     setIsRunning(true)
   }
 
   const reset = () => {
     setIsRunning(false)
     setProcesses([])
+    queueRef.current = []
     setSemaphore({ value: 1, queue: [] })
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d')
