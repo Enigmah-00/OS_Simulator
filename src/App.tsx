@@ -47,8 +47,11 @@ function App() {
   return (
     <div className="container">
       <header>
-        <h1>Operating System Concepts Simulator</h1>
-        <p className="subtitle">Interactive Visualization & Learning Platform</p>
+        <div className="logo-container">
+          <span className="logo-icon">⚙️</span>
+          <h1>OS Simulator</h1>
+        </div>
+        <p className="subtitle">Professional Operating System Concepts Visualization</p>
       </header>
 
       <nav className="main-nav">
@@ -69,7 +72,7 @@ function App() {
       </main>
 
       <footer>
-        <p>&copy; 2025 OS Concepts Simulator | Educational Purpose</p>
+        <p>&copy; 2025 OS Simulator | Built for Education & Understanding</p>
       </footer>
     </div>
   )
